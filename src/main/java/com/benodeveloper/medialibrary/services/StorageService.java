@@ -1,19 +1,16 @@
 package com.benodeveloper.medialibrary.services;
 
-import java.util.UUID;
-import java.nio.file.Path;
-import java.util.Optional;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.stream.Stream;
-import java.nio.file.StandardCopyOption;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.benodeveloper.medialibrary.entities.Media;
 import com.benodeveloper.medialibrary.properties.StorageProperties;
 
 @Service
@@ -31,11 +28,12 @@ public class StorageService {
      */
     public void init() {
         try {
-            if (Files.notExists(uploadPath))
-                Files.createDirectory(uploadPath);
+                FileUtils.forceDelete(uploadPath.toFile());
+                FileUtils.forceMkdir(uploadPath.toFile());
+            
 
         } catch (IOException e) {
-            throw new RuntimeException("Could not initialize folder for upload!");
+            throw new RuntimeException("Could not initialize folder for upload! : (" + e.getMessage()+ ")");
         }
     }
 
@@ -49,27 +47,25 @@ public class StorageService {
     }
 
     /**
-     * Save the file
-     * 
+     * Save the file in the uploads directory, return the file path
+     *
      * @param file
+     * @param filename
      * @return
+     * @throws Exception 
      * @throws IOException
      */
-    public Media saveFile(MultipartFile file) throws IOException {
-        String originalFilename = Optional.of(file.getOriginalFilename()).orElseThrow();
+    public Path saveFile(MultipartFile file, String filename) throws Exception {
+        // get file extension
+        String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
+        filename = filename + "." + fileExtension;
+        Path path = this.uploadPath.resolve(filename);
 
-        String filename = StringUtils.cleanPath(originalFilename);
-        var media = Media.builder()
-                .uuid(UUID.randomUUID().toString())
-                .fileName(filename)
-                .name(originalFilename)
-                .fileType(file.getContentType())
-                .size(file.getSize())
-                .build();
+        if (Files.exists(path)) {
+            throw new Exception("The file is already existed");
+        }
 
-        // TODO: create a copy if file is already exists
-        Files.copy(file.getInputStream(), this.uploadPath.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
-
-        return media;
+        Files.copy(file.getInputStream(), path);
+        return path;
     }
 }
