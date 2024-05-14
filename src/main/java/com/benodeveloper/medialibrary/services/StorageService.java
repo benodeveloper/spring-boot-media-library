@@ -1,13 +1,17 @@
 package com.benodeveloper.medialibrary.services;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,13 +32,28 @@ public class StorageService {
      */
     public void init() {
         try {
-                FileUtils.forceDelete(uploadPath.toFile());
-                FileUtils.forceMkdir(uploadPath.toFile());
-            
+            FileUtils.forceDelete(uploadPath.toFile());
+            FileUtils.forceMkdir(uploadPath.toFile());
 
         } catch (IOException e) {
-            throw new RuntimeException("Could not initialize folder for upload! : (" + e.getMessage()+ ")");
+            throw new RuntimeException("Could not initialize folder for upload! : (" + e.getMessage() + ")");
         }
+    }
+
+    /**
+     * Load resource from uploads directory.
+     * 
+     * @param filename
+     * @return
+     * @throws MalformedURLException
+     */
+    public Optional<Resource> loadResource(String filename) throws MalformedURLException {
+        var file = uploadPath.resolve(filename);
+        if(Files.exists(file) && Files.isReadable(file)) {
+            var resource = new UrlResource(file.toUri());
+            return Optional.of(resource);
+        }
+        return  Optional.empty();
     }
 
     public Stream<Path> loadAll() {
@@ -52,7 +71,7 @@ public class StorageService {
      * @param file
      * @param filename
      * @return
-     * @throws Exception 
+     * @throws Exception
      * @throws IOException
      */
     public Path saveFile(MultipartFile file, String filename) throws Exception {

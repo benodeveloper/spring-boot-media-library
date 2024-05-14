@@ -3,6 +3,7 @@ package com.benodeveloper.medialibrary.services;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -43,13 +44,23 @@ public class MediaService {
     }
 
     /**
+     * Get single media by uuid.
+     * 
+     * @param uuid
+     * @return
+     */
+    public Optional<Media> getByUUID(String uuid) {
+        return mediaRepository.findByUUID(UUID.fromString(uuid));
+    }
+
+    /**
      * Delete a specific media by uuid, it also delete the file from uploads
      * 
      * @param uuid
      * @throws IOException
      */
     public void deleteMedia(String uuid) throws IOException {
-        var media = mediaRepository.findByUUID(UUID.fromString(uuid));
+        var media = getByUUID(uuid);
         if(media.isPresent()) {
             var path = Path.of(media.get().getPath());
             if (Files.exists(path)) {
