@@ -1,0 +1,6 @@
+spring:
+    application:
+        name: media-library
+
+media-library:
+    upload_dir: uploads
