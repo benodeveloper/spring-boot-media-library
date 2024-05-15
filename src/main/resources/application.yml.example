@@ -1,0 +1,13 @@
+spring:
+    application:
+        name: media-library
+    datasource:
+        url: jdbc:postgresql://{host}:{port}/{database name}
+        username: {username}
+        password: {password}
+    jpa:
+        hibernate:
+            ddl-auto: none  #create | create-drop | none | update | validate
+
+media-library:
+    upload_dir: {upload directory}

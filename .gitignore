@@ -39,3 +39,5 @@ out/
 uploads
 
 notes.txt
+
+src/main/resources/application.yml
