@@ -69,6 +69,7 @@ public class MediaController {
 
     /**
      * Get media by uuid.
+     *
      * @param uuid
      * @return
      */

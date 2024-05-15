@@ -49,11 +49,11 @@ public class StorageService {
      */
     public Optional<Resource> loadResource(String filename) throws MalformedURLException {
         var file = uploadPath.resolve(filename);
-        if(Files.exists(file) && Files.isReadable(file)) {
+        if (Files.exists(file) && Files.isReadable(file)) {
             var resource = new UrlResource(file.toUri());
             return Optional.of(resource);
         }
-        return  Optional.empty();
+        return Optional.empty();
     }
 
     public Stream<Path> loadAll() {
@@ -78,7 +78,19 @@ public class StorageService {
         // get file extension
         String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
         filename = filename + "." + fileExtension;
-        Path path = this.uploadPath.resolve(filename);
+
+        return SaveMultipartFile(file, this.uploadPath.resolve(filename));
+    }
+
+    /**
+     * Save Multipart file in a given path.
+     * 
+     * @param file
+     * @param path
+     * @return
+     * @throws Exception
+     */
+    public static Path SaveMultipartFile(MultipartFile file, Path path) throws Exception {
 
         if (Files.exists(path)) {
             throw new Exception("The file is already existed");
