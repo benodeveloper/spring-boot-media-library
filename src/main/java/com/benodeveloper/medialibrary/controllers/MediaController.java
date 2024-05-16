@@ -47,8 +47,8 @@ public class MediaController {
 
     /**
      * Get file by filename.
-     * s
-     * @param filename
+     *
+     * @param filename {@code String}
      * @return
      */
     @GetMapping("/files/{filename:.+}")
@@ -90,20 +90,9 @@ public class MediaController {
      */
     @PostMapping(path = "/upload")
     public ResponseEntity<?> uploadMedia(@RequestParam("media") MultipartFile file) {
-        UUID mediaUUID = UUID.randomUUID();
         try {
-            Path path = storageService.saveFile(file, mediaUUID.toString());
-
-            Media media = Media.builder()
-                    .UUID(mediaUUID)
-                    .fileName(path.getFileName().toString())
-                    .name(file.getOriginalFilename())
-                    .fileType(file.getContentType())
-                    .size(file.getSize())
-                    .path(path.toString())
-                    .build();
-
-            return ResponseEntity.ok(mediaService.saveMedia(media));
+            Media media = mediaService.saveMultipartFileAsMedia(file);
+            return ResponseEntity.ok(media);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }

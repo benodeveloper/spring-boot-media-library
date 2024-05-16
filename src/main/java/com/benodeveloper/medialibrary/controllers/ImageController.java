@@ -1,10 +1,11 @@
 package com.benodeveloper.medialibrary.controllers;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 
 import com.benodeveloper.medialibrary.entities.Media;
-import com.benodeveloper.medialibrary.services.ImageService;
+import com.benodeveloper.medialibrary.services.MediaService;
+import com.benodeveloper.medialibrary.utils.ImageUtils;
+import com.sun.jdi.InternalException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,35 +14,41 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Paths;
-import java.util.UUID;
 
-import com.benodeveloper.medialibrary.services.StorageService;
+import static com.benodeveloper.medialibrary.utils.ImageUtils.*;
 
 @RestController
 @RequestMapping("/api/media/images")
 public class ImageController {
+    private final MediaService mediaService;
 
-    private  final ImageService imageService;
-
-    public ImageController(ImageService imageService) {
-        this.imageService = imageService;
+    public ImageController(MediaService mediaService) {
+        this.mediaService = mediaService;
     }
 
-
+    /**
+     * Upload a single image
+     *
+     * @param file submitted file
+     * @return
+     */
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile file) throws Exception {
-//        UUID mediaUUID = UUID.randomUUID();
-//        Path path = imageService.saveImage(file);
-////         storageService.saveFile(file, mediaUUID.toString());
-//
-//            Media media = Media.builder()
-//                    .UUID(mediaUUID)
-//                    .fileName(path.getFileName().toString())
-//                    .name(file.getOriginalFilename())
-//                    .fileType(file.getContentType())
-//                    .size(file.getSize())
-//                    .path(path.toString())
-//                    .build();
-        return ResponseEntity.ok("");
+    public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile file) {
+        try {
+            // check if is a valid image content type
+            if (!Arrays.asList(ALLOWED_CONTENT_TYPE).contains(file.getContentType()))
+                throw new InternalException("Invalid content type o image");
+            //
+            // copy and save image as media
+            Media media = mediaService.saveMultipartFileAsMedia(file);
+            // create a copy in JPG
+            ImageUtils.ConvertImageToJPG(Paths.get(media.getPath()));
+            //Crop 500X500 in the center
+            cropImage(Paths.get(media.getPath()), 500, 500, CROP_POSITION_CENTER );
+
+            return ResponseEntity.ok(media);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 }
