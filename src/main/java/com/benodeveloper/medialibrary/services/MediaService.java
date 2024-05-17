@@ -6,6 +6,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.benodeveloper.medialibrary.exceptions.FileOperationException;
+import com.benodeveloper.medialibrary.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.benodeveloper.medialibrary.entities.Media;
@@ -31,7 +33,7 @@ public class MediaService {
      * @return {@code Media}
      * @throws Exception
      */
-    public Media saveMultipartFileAsMedia(MultipartFile file) throws Exception {
+    public Media saveMultipartFileAsMedia(MultipartFile file) throws FileOperationException, ResourceNotFoundException {
         UUID mediaUUID = UUID.randomUUID();
         Path path = storageService.saveFile(file, mediaUUID.toString());
         Media media = Media.builder()
@@ -52,9 +54,9 @@ public class MediaService {
      * @return {@code Media}
      * @throws Exception
      */
-    public Media saveMedia(Media media) throws Exception {
+    public Media saveMedia(Media media) throws ResourceNotFoundException {
         if (!Files.exists(Path.of(media.getPath()))) {
-            throw new Exception("File does not exists in uploads directory");
+            throw new ResourceNotFoundException("File does not exists in uploads directory");
         }
         return mediaRepository.save(media);
     }
@@ -79,7 +81,7 @@ public class MediaService {
     }
 
     /**
-     * Delete a specific media by uuid, it also delete the file from uploads
+     * Delete a specific media by uuid, it also deletes the file from uploads
      *
      * @param uuid {@code String}
      * @throws IOException

@@ -51,18 +51,12 @@ public class MediaController {
      */
     @GetMapping("/files/{filename:.+}")
     public ResponseEntity<?> getResource(@PathVariable("filename") String filename) {
-        try {
-            var file = storageService.loadResource(filename);
-            if (!file.isPresent()) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity
-                    .ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.get().getFilename() + "\"")
-                    .body(file.get());
-        } catch (MalformedURLException e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
+        var file = storageService.loadResource(filename);
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                .body(file);
+
     }
 
     /**

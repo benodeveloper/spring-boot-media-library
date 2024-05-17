@@ -1,5 +1,6 @@
 package com.benodeveloper.medialibrary.utils;
 
+import com.benodeveloper.medialibrary.exceptions.UnreadableFileException;
 import org.apache.commons.io.FilenameUtils;
 
 import javax.imageio.ImageIO;
@@ -45,27 +46,37 @@ public class ImageUtils {
      * @param path
      * @throws IOException
      */
-    public static void ConvertImageToJPG(Path path) throws IOException {
-        InputStream inputStream = new FileInputStream(path.toFile());
-        final BufferedImage image = ImageIO.read(inputStream);
-        inputStream.close();
-        String filename = FilenameUtils.removeExtension(path.toString()).concat(".jpg");
-        final BufferedImage convertedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-        convertedImage.createGraphics().drawImage(image, 0, 0, Color.WHITE, null);
-        final FileOutputStream outputStream = new FileOutputStream(filename);
-        final boolean canWrite = ImageIO.write(convertedImage, "jpg", outputStream);
-        outputStream.close();
+    public static void ConvertImageToJPG(Path path) throws RuntimeException {
 
-        if (!canWrite) throw new IllegalArgumentException("Failed to write converted image.");
+
+        boolean canWrite = false;
+        try {
+             InputStream inputStream = new FileInputStream(path.toFile());
+            final BufferedImage image;
+            image = ImageIO.read(inputStream);
+            inputStream.close();
+            String filename = FilenameUtils.removeExtension(path.toString()).concat(".jpg");
+            final BufferedImage convertedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            convertedImage.createGraphics().drawImage(image, 0, 0, Color.WHITE, null);
+            final FileOutputStream outputStream = new FileOutputStream(filename);
+            canWrite = ImageIO.write(convertedImage, "jpg", outputStream);
+            outputStream.close();
+
+        } catch (IOException e) {
+            throw new UnreadableFileException(e);
+        }
+
+        if (!canWrite) throw new UnreadableFileException("Failed to write converted image.");
     }
 
     /**
      * Crop a given image in a given path.
      *
-     * @param path the file path.
-     * @param width corp width.
-     * @param height crop height.
+     * @param path     the file path.
+     * @param width    corp width.
+     * @param height   crop height.
      * @param position position to start the crop.
+     * @throws IOException
      * @see #CROP_POSITION_LEFT_TOP
      * @see #CROP_POSITION_LEFT_MIDDLE
      * @see #CROP_POSITION_LEFT_BOTTOM
@@ -75,15 +86,13 @@ public class ImageUtils {
      * @see #CROP_POSITION_RIGHT_TOP
      * @see #CROP_POSITION_RIGHT_MIDDLE
      * @see #CROP_POSITION_RIGHT_BOTTOM
-     *
-     * @throws IOException
      */
     public static void cropImage(Path path, int width, int height, int position) throws IOException {
         File file = path.toFile();
         BufferedImage image = ImageIO.read(file);
         int imageWidth = image.getWidth();
         int imageHeight = image.getHeight();
-        if(height > imageHeight || width > imageWidth) {
+        if (height > imageHeight || width > imageWidth) {
             throw new InterruptedIOException("Cropping to these dimensions on this image is not possible");
         }
         int middle = ((imageHeight / 2) - (height / 2));
@@ -96,13 +105,13 @@ public class ImageUtils {
         int[] xAndY = switch (position) {
             case CROP_POSITION_LEFT_TOP -> new int[]{left, top};
             case CROP_POSITION_LEFT_MIDDLE -> new int[]{left, middle};
-            case CROP_POSITION_LEFT_BOTTOM -> new int[]{left,bottom};
+            case CROP_POSITION_LEFT_BOTTOM -> new int[]{left, bottom};
             case CROP_POSITION_CENTER_TOP -> new int[]{center, top};
             case CROP_POSITION_CENTER -> new int[]{center, middle};
             case CROP_POSITION_CENTER_BOTTOM -> new int[]{center, bottom};
             case CROP_POSITION_RIGHT_TOP -> new int[]{right, top};
             case CROP_POSITION_RIGHT_MIDDLE -> new int[]{right, middle};
-           case CROP_POSITION_RIGHT_BOTTOM -> new int[]{right, bottom};
+            case CROP_POSITION_RIGHT_BOTTOM -> new int[]{right, bottom};
             default -> new int[]{left, top};
         };
         String dist = FilenameUtils.removeExtension(path.toString()).concat("-" + width + "X" + height + ".jpg");
@@ -110,9 +119,8 @@ public class ImageUtils {
     }
 
     /**
-     *
-     * @param path the file path.
-     * @param width corp width.
+     * @param path   the file path.
+     * @param width  corp width.
      * @param height crop height.
      * @throws IOException
      */
@@ -124,8 +132,8 @@ public class ImageUtils {
      * Crop an image in a given path with a given width/height
      * with given x/y axes to start cropping with.
      *
-     * @param path the file path.
-     * @param width corp width.
+     * @param path   the file path.
+     * @param width  corp width.
      * @param height crop height.
      * @param startX start cropping x axes.
      * @param startY start cropping in y axes.
@@ -141,15 +149,15 @@ public class ImageUtils {
      * Corp a given image as BufferedImage with a given dimensions Width and Height
      * plus x/y axes to start cropping with and save it as a given dist file
      *
-     * @param image Given image as BufferedImage
-     * @param dist dist file
-     * @param width corp width.
+     * @param image  Given image as BufferedImage
+     * @param dist   dist file
+     * @param width  corp width.
      * @param height crop height.
      * @param startX start cropping x axes.
      * @param startY start cropping in y axes.
      * @throws IOException
      */
-    public static void cropImage(BufferedImage image, String dist, int width, int height, int startX, int startY) throws IOException  {
+    public static void cropImage(BufferedImage image, String dist, int width, int height, int startX, int startY) throws IOException {
         // create a copy of the image with the same width and height
         // NOTE: we could use getSubimage, but getSubimage acts as a pointer which points at a subsection of
         // the original image That means when we edit or crop the subimage, the edits will also happen to
