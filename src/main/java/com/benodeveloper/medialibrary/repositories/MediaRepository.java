@@ -12,5 +12,6 @@ import com.benodeveloper.medialibrary.entities.Media;
 public interface  MediaRepository extends JpaRepository<Media, Long> {
 
     Optional<Media> findByUUID(UUID uuid);
-    
+    Optional<Media> findByFilename(String filename);
+    Optional<Media> findByName(String name);
 }

@@ -25,7 +25,7 @@ public class Media {
     private Long id;
     private UUID UUID;
     private String name;
-    private String fileName;
+    private String filename;
     private String path;
     private String fileType;
     private Long size;

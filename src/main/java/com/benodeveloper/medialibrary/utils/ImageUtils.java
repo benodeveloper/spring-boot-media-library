@@ -1,13 +1,15 @@
 package com.benodeveloper.medialibrary.utils;
 
-import com.benodeveloper.medialibrary.exceptions.UnreadableFileException;
 import org.apache.commons.io.FilenameUtils;
+import com.benodeveloper.medialibrary.exceptions.UnreadableFileException;
+import com.benodeveloper.medialibrary.exceptions.WriteFileFailedException;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 
 public class ImageUtils {
 
@@ -51,7 +53,7 @@ public class ImageUtils {
 
         boolean canWrite = false;
         try {
-             InputStream inputStream = new FileInputStream(path.toFile());
+            InputStream inputStream = new FileInputStream(path.toFile());
             final BufferedImage image;
             image = ImageIO.read(inputStream);
             inputStream.close();
@@ -67,6 +69,37 @@ public class ImageUtils {
         }
 
         if (!canWrite) throw new UnreadableFileException("Failed to write converted image.");
+    }
+
+    public static Path resizeImage(Path path, int width, int height, String format) {
+        final BufferedImage image;
+        try {
+            image = ImageIO.read(path.toFile());
+        } catch (IOException e) {
+            throw new UnreadableFileException(e);
+        }
+
+        String dist = FilenameUtils.removeExtension(path.toString()).concat("-scaled-" + width + "X" + height + "." + format);
+        return resizeImage(image, Paths.get(dist), width, height, format);
+    }
+
+    public static Path resizeImage(BufferedImage image, Path dist, int width, int height, String format) {
+
+        boolean canWrite = false;
+        try {
+            final Image scaledInstance = image.getScaledInstance(width, height, Image.SCALE_DEFAULT);
+            BufferedImage copy = new BufferedImage(scaledInstance.getWidth(null), scaledInstance.getHeight(null), BufferedImage.TYPE_INT_RGB);
+            copy.createGraphics().drawImage(scaledInstance, 0, 0, null);
+            final FileOutputStream outputStream = new FileOutputStream(dist.toFile());
+            canWrite = ImageIO.write(copy, format, outputStream);
+            outputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (!canWrite) throw new UnreadableFileException("Failed to write scaled image.");
+
+        return dist;
     }
 
     /**
@@ -124,7 +157,7 @@ public class ImageUtils {
      * @param height crop height.
      * @throws IOException
      */
-    public static void cropImage(Path path, int width, int height) throws IOException {
+    public static void cropImage(Path path, int width, int height) {
         cropImage(path, width, height, 0, 0);
     }
 
@@ -139,8 +172,13 @@ public class ImageUtils {
      * @param startY start cropping in y axes.
      * @throws IOException
      */
-    public static void cropImage(Path path, int width, int height, int startX, int startY) throws IOException {
-        final BufferedImage image = ImageIO.read(path.toFile());
+    public static void cropImage(Path path, int width, int height, int startX, int startY) {
+        final BufferedImage image;
+        try {
+            image = ImageIO.read(path.toFile());
+        } catch (IOException e) {
+            throw new UnreadableFileException(e);
+        }
         String dist = FilenameUtils.removeExtension(path.toString()).concat("-" + width + "X" + height + ".jpg");
         cropImage(image, dist, width, height, startX, startY);
     }
@@ -157,19 +195,26 @@ public class ImageUtils {
      * @param startY start cropping in y axes.
      * @throws IOException
      */
-    public static void cropImage(BufferedImage image, String dist, int width, int height, int startX, int startY) throws IOException {
-        // create a copy of the image with the same width and height
-        // NOTE: we could use getSubimage, but getSubimage acts as a pointer which points at a subsection of
-        // the original image That means when we edit or crop the subimage, the edits will also happen to
-        // the original image, so we need to create a copy from the original and redraw it as a new image.
-        final BufferedImage copy = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-        // draw the image inside the copy
-        Graphics graphics = copy.createGraphics();
-        graphics.drawImage(image, 0, 0, null);
-        final FileOutputStream outputStream = new FileOutputStream(dist);
-        // then crop it and save it as jpg file
-        final boolean canWrite = ImageIO.write(copy.getSubimage(startX, startY, width, height), "jpg", outputStream);
-        outputStream.close();
-        if (!canWrite) throw new IllegalArgumentException("Failed to write corp image.");
+    public static void cropImage(BufferedImage image, String dist, int width, int height, int startX, int startY) {
+        boolean canWrite = false;
+        try {
+            // create a copy of the image with the same width and height
+            // NOTE: we could use getSubimage, but getSubimage acts as a pointer which points at a subsection of
+            // the original image That means when we edit or crop the subimage, the edits will also happen to
+            // the original image, so we need to create a copy from the original and redraw it as a new image.
+            final BufferedImage copy = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            // draw the image inside the copy
+            Graphics graphics = copy.createGraphics();
+            graphics.drawImage(image, 0, 0, null);
+            graphics.dispose();
+            final FileOutputStream outputStream = new FileOutputStream(dist);
+            // then crop it and save it as jpg file
+            canWrite = ImageIO.write(copy.getSubimage(startX, startY, width, height), "jpg", outputStream);
+            outputStream.close();
+        } catch (IOException e) {
+            throw new WriteFileFailedException(e);
+        }
+
+        if (!canWrite) throw new WriteFileFailedException("Failed to write corp image.");
     }
 }

@@ -1,18 +1,18 @@
 package com.benodeveloper.medialibrary.services;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.stream.Stream;
+import java.net.MalformedURLException;
 
-import com.benodeveloper.medialibrary.exceptions.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.core.io.UrlResource;
+import com.benodeveloper.medialibrary.exceptions.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.benodeveloper.medialibrary.properties.StorageProperties;
@@ -32,8 +32,11 @@ public class StorageService {
      */
     public void init() throws IOException {
         try {
-            FileUtils.forceDelete(uploadPath.toFile());
-            FileUtils.forceMkdir(uploadPath.toFile());
+            if(!Files.exists(uploadPath)) {
+
+//                FileUtils.forceDelete(uploadPath.toFile());
+                FileUtils.forceMkdir(uploadPath.toFile());
+            }
 
         } catch (IOException e) {
             throw new IOException("Could not initialize folder for upload! : (" + e.getMessage() + ")");

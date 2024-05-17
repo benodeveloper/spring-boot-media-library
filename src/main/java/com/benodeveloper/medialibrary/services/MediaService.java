@@ -38,7 +38,7 @@ public class MediaService {
         Path path = storageService.saveFile(file, mediaUUID.toString());
         Media media = Media.builder()
                 .UUID(mediaUUID)
-                .fileName(path.getFileName().toString())
+                .filename(path.getFileName().toString())
                 .name(file.getOriginalFilename())
                 .fileType(file.getContentType())
                 .size(file.getSize())
@@ -95,5 +95,13 @@ public class MediaService {
             }
             mediaRepository.delete(media.get());
         }
+    }
+
+    public Optional<Media> getByFilename(String filename) {
+        return mediaRepository.findByFilename(filename);
+    }
+
+    public Optional<Media> getByName(String name) {
+        return mediaRepository.findByName(name);
     }
 }
