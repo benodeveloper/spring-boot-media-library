@@ -58,11 +58,13 @@ public class ImageController {
      * @param name {@code String}
      * @return
      */
-    @GetMapping("/{name}")
+    @GetMapping("/{name:.+}")
     public ResponseEntity<?> getResource(@PathVariable("name") String name, @ModelAttribute ImageQuery query) throws IOException {
+        // set maximum height and width to 4000
         int width = query.getW();
         int height = query.getH();
-        // unsupported formats [avif, webp, x-tiff,apng,avif]
+
+        // unsupported formats [avif, webp, x-tiff,apng]
         String format = query.getF();
         var media = mediaService.getByName(name).orElseThrow(() -> new ResourceNotFoundException("Image with a given filename ("+name+") not found"));
 
