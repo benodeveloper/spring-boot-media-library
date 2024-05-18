@@ -1,21 +1,20 @@
 package com.benodeveloper.medialibrary.services;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.stream.Stream;
-import java.net.MalformedURLException;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
-import org.springframework.core.io.UrlResource;
 import com.benodeveloper.medialibrary.exceptions.*;
+import com.benodeveloper.medialibrary.properties.StorageProperties;
+import org.apache.commons.io.FileUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.benodeveloper.medialibrary.properties.StorageProperties;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @Service
 public class StorageService {
@@ -79,16 +78,19 @@ public class StorageService {
      * Save the file in the uploads directory, return the file path
      *
      * @param file
-     * @param filename
+     * @param dir
      * @return
      * @throws FileCopyOperationException
      */
-    public Path saveFile(MultipartFile file, String filename) throws FileOperationException {
-        // get file extension
-        String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
-        filename = filename + "." + fileExtension;
+    public Path saveFile(MultipartFile file, String dir) throws FileOperationException {
+        try {
+            FileUtils.forceMkdir(this.uploadPath.resolve(dir).toFile());
+            Path filePath = this.uploadPath.resolve(dir).resolve(Objects.requireNonNull(file.getOriginalFilename()));
+            return SaveMultipartFile(file, filePath);
+        } catch (IOException e) {
+            throw new FileOperationException(e);
+        }
 
-        return SaveMultipartFile(file, this.uploadPath.resolve(filename));
     }
 
     /**

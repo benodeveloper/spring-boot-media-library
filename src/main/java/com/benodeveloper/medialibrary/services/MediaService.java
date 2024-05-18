@@ -1,18 +1,17 @@
 package com.benodeveloper.medialibrary.services;
 
+import com.benodeveloper.medialibrary.entities.Media;
+import com.benodeveloper.medialibrary.exceptions.FileOperationException;
+import com.benodeveloper.medialibrary.exceptions.ResourceNotFoundException;
+import com.benodeveloper.medialibrary.repositories.MediaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.benodeveloper.medialibrary.exceptions.FileOperationException;
-import com.benodeveloper.medialibrary.exceptions.ResourceNotFoundException;
-import org.springframework.stereotype.Service;
-
-import com.benodeveloper.medialibrary.entities.Media;
-import com.benodeveloper.medialibrary.repositories.MediaRepository;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class MediaService {
@@ -103,5 +102,9 @@ public class MediaService {
 
     public Optional<Media> getByName(String name) {
         return mediaRepository.findByName(name);
+    }
+
+    public Optional<Media> getByUUIDAndName(String uuid, String name) {
+        return mediaRepository.findByUUIDAndName(UUID.fromString(uuid), name);
     }
 }

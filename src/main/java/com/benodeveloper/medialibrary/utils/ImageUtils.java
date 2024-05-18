@@ -1,15 +1,17 @@
 package com.benodeveloper.medialibrary.utils;
 
-import org.apache.commons.io.FilenameUtils;
 import com.benodeveloper.medialibrary.exceptions.UnreadableFileException;
 import com.benodeveloper.medialibrary.exceptions.WriteFileFailedException;
+import org.apache.commons.io.FilenameUtils;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 
 public class ImageUtils {
 
@@ -59,7 +61,7 @@ public class ImageUtils {
     public static Path resizeImage(Path path, int width, int height, String format) {
         final BufferedImage image = readImageFromPath(path);
         int[] dimensions = adjustResizeImageDimensions(image, width, height);
-        Path dist = regenerateImagePath(path, "scaled-" + dimensions[0] + "X" + dimensions[1], format);
+        Path dist = regenerateImagePath(path, "-scaled-" + dimensions[0] + "X" + dimensions[1], format);
         if (dist.toFile().exists()) return dist;
         return resizeImage(image, dist, dimensions[0], dimensions[1], format);
     }
@@ -68,7 +70,10 @@ public class ImageUtils {
         final Image scaledInstance = image.getScaledInstance(width, height, Image.SCALE_DEFAULT);
         BufferedImage copy = new BufferedImage(scaledInstance.getWidth(null), scaledInstance.getHeight(null), BufferedImage.TYPE_INT_RGB);
         copy.createGraphics().drawImage(scaledInstance, 0, 0, null);
-        if (!writeImageToPath(copy, dist, format)) throw new UnreadableFileException("Failed to write scaled image.");
+        if (!writeImageToPath(copy, dist, format)) {
+
+            throw new UnreadableFileException("Failed to write scaled image.");
+        }
         return dist;
     }
 

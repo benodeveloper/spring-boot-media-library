@@ -23,9 +23,10 @@ curl --request POST \
 
 ````json 'Response Body'
 {
-  "file": {
-    "file_path" : "/uploads/images/example.jpg",
-    "file_url": "http://localhost:8080/api/image/example.jpg"
-  }
+  "file_url": "http://localhost:8080/api/images/f16367c4-156c-40f0-bfd7-a3826b7554fd/example.jpg",
+  "file_path": "uploads/f16367c4-156c-40f0-bfd7-a3826b7554fd/example.jpg",
+  "filename": "example.jpg",
+  "contentType": "image/jpeg",
+  "size": 446272 // Bytes
 }
 ````

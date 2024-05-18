@@ -1,16 +1,14 @@
 package com.benodeveloper.medialibrary.entities;
 
-import java.util.UUID;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @Data
 @Table
@@ -22,11 +20,18 @@ public class Media {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
     private Long id;
+
+    @JsonIgnore
     private UUID UUID;
     private String name;
     private String filename;
+    @JsonIgnore
     private String path;
+
+    @JsonProperty("file_type")
     private String fileType;
+
     private Long size;
 }
